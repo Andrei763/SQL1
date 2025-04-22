@@ -1,41 +1,33 @@
 package ru.netology.page;
 import com.codeborne.selenide.SelenideElement;
 
-import static com.codeborne.selenide.Condition.*;
-import static com.codeborne.selenide.Selenide.$x;
+import java.time.Duration;
+
+import static com.codeborne.selenide.Condition.exactText;
+import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Selenide.$;
 
 public class VerifyPage {
-    private SelenideElement codeInput = $x("//span[@data-test-id='code']//input");
-    private SelenideElement codeInputEmptyNotification = $x(
-            "//span[@data-test-id='code']//span[@class='input__sub']");
-    private SelenideElement verifyButton = $x("//button[@data-test-id='action-verify']");
-    private SelenideElement errorNotification = $x("//div[@data-test-id='error-notification']");
-    private SelenideElement errorButton = $x("//div[@data-test-id='error-notification']/button");
+    private final SelenideElement codeField = $("[data-test-id='code'] input");
+    private final SelenideElement button = $("[data-test-id='action-verify']");
+    private final SelenideElement errorNotification = $("[data-test-id='error-notification'] .notification__content");
 
     public VerifyPage() {
-        codeInput.should(visible);
-        verifyButton.should(visible);
-        errorNotification.should(hidden);
-        errorButton.should(hidden);
+        codeField.shouldBe(visible);
     }
 
-    public void insert(String code) {
-        codeInput.val(code);
-        verifyButton.click();
-    }
-
-    public DashboardPage success() {
-        errorNotification.should(hidden);
-        errorButton.should(hidden);
+    public DashboardPage validCode(String verificationCode) {
+        virify(verificationCode);
         return new DashboardPage();
     }
 
-    public void failed() {
-        errorNotification.should(visible);
-        errorNotification.$x(".//div[@class='notification__content']").
-                should(text("Ошибка! " + "Неверно указан код! Попробуйте ещё раз."));
-        errorButton.click();
-        errorNotification.should(hidden);
-        codeInputEmptyNotification.should(text("Поле обязательно для заполнения"));
+    public void virify(String verificatinCode) {
+        codeField.setValue(verificatinCode);
+        button.click();
+    }
+
+    public void errorMessage(String expectedText) {
+        errorNotification.shouldHave(exactText(expectedText))
+                .shouldBe(visible, Duration.ofSeconds(15));
     }
 }

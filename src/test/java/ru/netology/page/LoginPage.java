@@ -1,51 +1,32 @@
 package ru.netology.page;
+import com.codeborne.selenide.Condition;
 import com.codeborne.selenide.SelenideElement;
+import ru.netology.data.DataHelper;
 
-import static com.codeborne.selenide.Condition.*;
-import static com.codeborne.selenide.Selenide.$x;
+import java.time.Duration;
+
+import static com.codeborne.selenide.Condition.visible;
+import static com.codeborne.selenide.Selenide.$;
 
 public class LoginPage {
-    private SelenideElement loginInput = $x("//span[@data-test-id='login']//input");
-    private SelenideElement loginInputEmptyNotification = $x(
-            "//span[@data-test-id='login']//span[@class='input__sub']");
-    private SelenideElement passwordInput = $x("//span[@data-test-id='password']//input");
-    private SelenideElement passwordInputEmptyNotification = $x(
-            "//span[@data-test-id='password']//span[@class='input__sub']");
-    private SelenideElement loginButton = $x("//button[@data-test-id='action-login']");
-    private SelenideElement errorNotification = $x("//div[@data-test-id='error-notification']");
-    private SelenideElement errorButton = $x("//div[@data-test-id='error-notification']/button");
+    private final SelenideElement loginField = $("[data-test-id='login'] input");
+    private final SelenideElement passwordField = $("[data-test-id='password'] input");
+    private final SelenideElement actionLogin = $("[data-test-id='action-login']");
+    private final SelenideElement errorNotification = $("[data-test-id='error-notification'] .notification__content");
 
-    public LoginPage() {
-        loginInput.should(visible);
-        passwordInput.should(visible);
-        loginButton.should(visible);
-        errorNotification.should(hidden);
-        errorButton.should(hidden);
-    }
-
-    public void insert(String login, String password) {
-        loginInput.val(login);
-        passwordInput.val(password);
-        loginButton.click();
-    }
-
-    public VerifyPage success() {
-        errorNotification.should(hidden);
-        errorButton.should(hidden);
+    public VerifyPage validLogin(DataHelper.AuthInfo authInfo) {
+        invalidUser(authInfo);
         return new VerifyPage();
     }
 
-    public void failed() {
-        errorNotification.should(visible);
-        errorNotification.$x(".//div[@class='notification__content']").
-                should(text("Ошибка! " + "Неверно указан логин или пароль"));
-        errorNotification.$x(".//div[@class='notification__content']").
-                should(text("Ошибка! " + "Пользователь заблокирован"));
-        errorButton.click();
-        errorNotification.should(hidden);
+    public void invalidUser(DataHelper.AuthInfo authInfo) {
+        loginField.setValue(authInfo.getLogin());
+        passwordField.setValue(authInfo.getPassword());
+        actionLogin.click();
     }
-    public void emptyLogin() {
-        loginInputEmptyNotification.should(text("Поле обязательно для заполнения"));
-        passwordInputEmptyNotification.should(text("Поле обязательно для заполнения"));
+
+    public void error(String expectedText) {
+        errorNotification.shouldHave(Condition.exactText(expectedText), Duration.ofSeconds(15)).shouldBe(visible);
+
     }
 }
